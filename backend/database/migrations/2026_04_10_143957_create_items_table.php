@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('location');
             $table->foreignId('finder_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('owner_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('status')->default('active');
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }
