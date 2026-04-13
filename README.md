@@ -24,6 +24,7 @@ Open a new terminal and run:
 
 cd frontend  
 npm install  
+cp .env.example .env  
 npm run dev  
 
 ---
