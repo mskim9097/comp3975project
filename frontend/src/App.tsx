@@ -5,6 +5,8 @@ import LandingPage from './pages/LandingPage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import MainPage from './pages/MainPage';
+import ItemsListPage from './pages/ItemsListPage';
+import AddItemPage from './pages/AddItemPage';
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/main" element={<MainPage />} />
+        <Route path="/items" element={<ItemsListPage />} />
+        <Route path="/add-item" element={<AddItemPage />} />
       </Routes>
     </BrowserRouter>
   );

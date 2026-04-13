@@ -10,31 +10,31 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         User::create([
-            'name' => 'Admin',
+            'name' => 'Admin User',
             'student_id' => 'A00000000',
             'first_name' => 'Admin',
             'last_name' => 'User',
-            'email' => 'admin@test.com',
+            'email' => 'admin@bcit.ca',
             'password' => 'password',
             'is_admin' => true,
         ]);
 
         User::create([
-            'name' => 'John Doe',
+            'name' => 'Student A',
             'student_id' => 'A11111111',
-            'first_name' => 'John',
-            'last_name' => 'Doe',
-            'email' => 'john@test.com',
+            'first_name' => 'Student',
+            'last_name' => 'A',
+            'email' => 'a@bcit.ca',
             'password' => 'password',
             'is_admin' => false,
         ]);
 
         User::create([
-            'name' => 'Jane Smith',
+            'name' => 'Student B',
             'student_id' => 'A22222222',
-            'first_name' => 'Jane',
-            'last_name' => 'Smith',
-            'email' => 'jane@test.com',
+            'first_name' => 'Student',
+            'last_name' => 'B',
+            'email' => 'b@bcit.ca',
             'password' => 'password',
             'is_admin' => false,
         ]);

@@ -26,7 +26,7 @@ class ItemController extends Controller
             'location' => 'required|string|max:255',
             'finder_id' => 'required|exists:users,id',
             'owner_id' => 'nullable|exists:users,id',
-            'status' => 'required|string|in:active,returned',
+            'status' => 'required|string|in:pending,active,returned',
         ]);
 
         $item = Item::create([

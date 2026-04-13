@@ -38,9 +38,14 @@ function Header() {
         <div className="collapse navbar-collapse" id="studentNavbar">
           <ul className="navbar-nav ms-auto align-items-lg-center gap-lg-2">
             <li className="nav-item">
-              <a className="nav-link student-nav-link" href="#">
+              <Link className="nav-link student-nav-link" to="/items">
                 Items List
-              </a>
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link student-nav-link" to="/add-item">
+                Add Item
+              </Link>
             </li>
             <li className="nav-item">
               <a className="nav-link student-nav-link" href="#">
