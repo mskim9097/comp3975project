@@ -46,21 +46,24 @@ function SignUpPage() {
         }
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                },
-                body: JSON.stringify({
-                    student_id: studentId,
-                    first_name: firstName,
-                    last_name: lastName,
-                    email,
-                    password,
-                    password_confirmation: confirmPassword,
-                }),
-            });
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/register`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                    },
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        first_name: firstName,
+                        last_name: lastName,
+                        email,
+                        password,
+                        password_confirmation: confirmPassword,
+                    }),
+                }
+            );
 
             const data = await response.json();
 
