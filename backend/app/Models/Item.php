@@ -19,6 +19,7 @@ class Item extends Model
         'finder_id',
         'owner_id',
         'status',
+        'found_at',
     ];
 
     public function finder()
