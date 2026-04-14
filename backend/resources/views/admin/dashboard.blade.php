@@ -9,7 +9,6 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <h1 class="text-2xl font-bold mb-2 text-gray-800">Welcome, Admin!</h1>
-                <p class="text-gray-600 mb-8">This is the admin dashboard for the AI Campus Lost & Found project.</p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-blue-50 p-6 rounded-lg border border-blue-100 shadow-sm">
