@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReturnLogController;
+use App\Http\Controllers\AIChatController;
 
 // React student auth
 Route::post('login', [AuthController::class, 'login']);
@@ -26,3 +27,5 @@ Route::apiResource('items', ItemController::class);
 
 Route::get('return-logs', [ReturnLogController::class, 'index']);
 Route::get('return-logs/{id}', [ReturnLogController::class, 'show']);
+
+Route::post('ai/chat', [AIChatController::class, 'chat']);
