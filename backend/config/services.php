@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    
+    'github_models' => [
+        'token' => env('GITHUB_MODELS_TOKEN'),
+        'url' => env('GITHUB_MODELS_URL'),
+        'model' => env('GITHUB_MODELS_MODEL', 'openai/gpt-4.1'),
+    ],
 ];
