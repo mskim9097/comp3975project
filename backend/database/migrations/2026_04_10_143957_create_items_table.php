@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreignId('finder_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('owner_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('status')->default('pending');
+            $table->timestamp('found_at')->nullable();
             $table->timestamps();
         });
     }

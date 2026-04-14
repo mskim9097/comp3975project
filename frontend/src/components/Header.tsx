@@ -36,10 +36,15 @@ function Header() {
         </button>
 
         <div className="collapse navbar-collapse" id="studentNavbar">
-          <ul className="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <ul className="navbar-nav ms-auto align-items-lg-center gap-lg-2 text-end">
             <li className="nav-item">
               <Link className="nav-link student-nav-link" to="/items">
                 Items List
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link student-nav-link" to="/my-claims">
+                My Claims
               </Link>
             </li>
             <li className="nav-item">
@@ -48,9 +53,9 @@ function Header() {
               </Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link student-nav-link" href="#">
-                Contact Us
-              </a>
+              <Link className="nav-link student-nav-link" to="/my-added-items">
+                My Added Items
+              </Link>
             </li>
             <li className="nav-item">
               <button

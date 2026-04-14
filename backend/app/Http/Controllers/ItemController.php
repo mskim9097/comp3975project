@@ -25,8 +25,7 @@ class ItemController extends Controller
             'brand' => 'nullable|string|max:255',
             'location' => 'required|string|max:255',
             'finder_id' => 'required|exists:users,id',
-            'owner_id' => 'nullable|exists:users,id',
-            'status' => 'required|string|in:pending,active,returned',
+            'found_at' => 'nullable|date',
         ]);
 
         $item = Item::create([
@@ -37,18 +36,10 @@ class ItemController extends Controller
             'brand' => $request->brand,
             'location' => $request->location,
             'finder_id' => $request->finder_id,
-            'owner_id' => $request->owner_id,
-            'status' => $request->status,
+            'owner_id' => null,
+            'status' => 'pending',
+            'found_at' => $request->found_at,
         ]);
-
-        if ($item->status === 'returned' && $item->owner_id !== null) {
-            ReturnLog::create([
-                'item_id' => $item->id,
-                'finder_id' => $item->finder_id,
-                'owner_id' => $item->owner_id,
-                'returned_at' => now(),
-            ]);
-        }
 
         return response()->json($item->load(['finder', 'owner']), 201);
     }
@@ -81,7 +72,8 @@ class ItemController extends Controller
             'location' => 'required|string|max:255',
             'finder_id' => 'nullable|exists:users,id',
             'owner_id' => 'nullable|exists:users,id',
-            'status' => 'required|string|in:active,returned',
+            'status' => 'required|string|in:pending,active,claim_pending,returned',
+            'found_at' => 'nullable|date',
         ]);
 
         $wasReturnedBefore = $item->status === 'returned';
@@ -96,6 +88,7 @@ class ItemController extends Controller
             'finder_id' => $request->finder_id,
             'owner_id' => $request->owner_id,
             'status' => $request->status,
+            'found_at' => $request->found_at,
         ]);
 
         if (

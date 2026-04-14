@@ -26,24 +26,6 @@ type Item = {
     found_at: string | null;
 };
 
-const locationOptions = [
-    'All',
-
-    '--- SW Buildings ---',
-    'SW1', 'SW2', 'SW3', 'SW5', 'SW7', 'SW9', 'SW10', 'SW12', 'SW13', 'SW14', 'SW16',
-
-    '--- SE Buildings ---',
-    'SE1', 'SE2', 'SE3', 'SE4', 'SE6', 'SE8', 'SE9', 'SE10', 'SE12', 'SE14', 'SE16', 'SE30',
-
-    '--- NE Buildings ---',
-    'NE1', 'NE3', 'NE4', 'NE6', 'NE8', 'NE9', 'NE10', 'NE12',
-
-    '--- NW Buildings ---',
-    'NW1', 'NW3', 'NW4', 'NW5', 'NW6'
-];
-const categoryOptions = ['All', 'Wallet', 'Backpack', 'Keys', 'Phone', 'Earbuds', 'Laptop', 'ID', 'Bottle', 'Headphones', 'Others'];
-const timeOptions = ['All', 'Morning', 'Afternoon', 'Evening', 'Night'];
-
 const categoryIcons: Record<string, string> = {
     Wallet: '👛',
     Backpack: '🎒',
@@ -107,33 +89,30 @@ function formatFoundAt(dateString: string | null): string {
     return `${month} ${day}${getOrdinal(day)} · ${timeOfDay}`;
 }
 
-function ItemsListPage() {
+function MyClaimsPage() {
     const navigate = useNavigate();
 
     const [items, setItems] = useState<Item[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState('All');
-    const [selectedLocation, setSelectedLocation] = useState('All');
-    const [selectedTime, setSelectedTime] = useState('All');
     const [selectedItem, setSelectedItem] = useState<Item | null>(null);
     const [loading, setLoading] = useState(true);
     const [pageError, setPageError] = useState('');
-    const [claimMessage, setClaimMessage] = useState('');
-    const [isClaiming, setIsClaiming] = useState(false);
+    const [actionMessage, setActionMessage] = useState('');
+    const [isCancelling, setIsCancelling] = useState(false);
 
     const token = localStorage.getItem('token');
     const userString = localStorage.getItem('user');
     const currentUser: User | null = userString ? JSON.parse(userString) : null;
 
     useEffect(() => {
-        if (!token || !userString) {
+        if (!token || !currentUser) {
             navigate('/signin');
             return;
         }
 
-        fetchItems();
-    }, [navigate, token, userString]);
+        fetchClaims();
+    }, [navigate]);
 
-    const fetchItems = async () => {
+    const fetchClaims = async () => {
         try {
             setLoading(true);
             setPageError('');
@@ -147,55 +126,49 @@ function ItemsListPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                setPageError(data.message || 'Failed to load items.');
+                setPageError(data.message || 'Failed to load claimed items.');
                 return;
             }
 
             setItems(data);
         } catch (error) {
             console.error(error);
-            setPageError('Something went wrong while loading items.');
+            setPageError('Something went wrong while loading your claims.');
         } finally {
             setLoading(false);
         }
     };
 
-    const filteredItems = useMemo(() => {
-        return items
-            .filter((item) => item.status === 'active')
-            .filter((item) => {
-                const matchesCategory =
-                    selectedCategory === 'All' || item.category === selectedCategory;
+    const myClaims = useMemo(() => {
+        if (!currentUser) {
+            return [];
+        }
 
-                const matchesLocation =
-                    selectedLocation === 'All' || item.location === selectedLocation;
-
-                const matchesTime =
-                    selectedTime === 'All' ||
-                    (item.found_at ? getTimeOfDay(item.found_at) === selectedTime : false);
-
-                return matchesCategory && matchesLocation && matchesTime;
-            });
-    }, [items, selectedCategory, selectedLocation, selectedTime]);
+        return items.filter(
+            (item) =>
+                item.status === 'claim_pending' &&
+                item.owner_id === currentUser.id
+        );
+    }, [items, currentUser]);
 
     const handleOpenModal = (item: Item) => {
         setSelectedItem(item);
-        setClaimMessage('');
+        setActionMessage('');
     };
 
     const handleCloseModal = () => {
         setSelectedItem(null);
-        setClaimMessage('');
+        setActionMessage('');
     };
 
-    const handleClaimItem = async () => {
-        if (!selectedItem || !currentUser) {
+    const handleCancelClaim = async () => {
+        if (!selectedItem) {
             return;
         }
 
         try {
-            setIsClaiming(true);
-            setClaimMessage('');
+            setIsCancelling(true);
+            setActionMessage('');
 
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/items/${selectedItem.id}`, {
                 method: 'PUT',
@@ -212,8 +185,8 @@ function ItemsListPage() {
                     brand: selectedItem.brand,
                     location: selectedItem.location,
                     finder_id: selectedItem.finder_id,
-                    owner_id: currentUser.id,
-                    status: 'claim_pending',
+                    owner_id: null,
+                    status: 'active',
                     found_at: selectedItem.found_at,
                 }),
             });
@@ -221,30 +194,28 @@ function ItemsListPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                setClaimMessage(data.message || 'Failed to submit claim.');
+                setActionMessage(data.message || 'Failed to cancel claim.');
                 return;
             }
 
-            setClaimMessage(
-                'Claim submitted. Please contact 778-123-4567 or visit SE12-325 Lost & Found Office.'
-            );
+            setActionMessage('Claim cancelled. The item is now visible in the public list again.');
 
             setItems((prevItems) =>
                 prevItems.map((item) =>
                     item.id === selectedItem.id
                         ? {
                             ...item,
-                            status: 'claim_pending',
-                            owner_id: currentUser.id,
+                            status: 'active',
+                            owner_id: null,
                         }
                         : item
                 )
             );
         } catch (error) {
             console.error(error);
-            setClaimMessage('Something went wrong while submitting your claim.');
+            setActionMessage('Something went wrong while cancelling your claim.');
         } finally {
-            setIsClaiming(false);
+            setIsCancelling(false);
         }
     };
 
@@ -255,73 +226,10 @@ function ItemsListPage() {
             <div className="items-page">
                 <div className="container py-5">
                     <div className="text-center mb-5">
-                        <h1 className="auth-title">Items List</h1>
+                        <h1 className="auth-title">My Claims</h1>
                         <p className="auth-subtitle">
-                            Browse active lost items using general public details only.
+                            Review items you have already claimed.
                         </p>
-                    </div>
-
-                    <div className="items-filter-card mb-4">
-                        <div className="row g-3">
-                            <div className="col-md-4">
-                                <label className="form-label text-primaryLight fw-semibold">
-                                    Category
-                                </label>
-                                <select
-                                    className="form-select custom-input"
-                                    value={selectedCategory}
-                                    onChange={(e) => setSelectedCategory(e.target.value)}
-                                >
-                                    {categoryOptions.map((option) => (
-                                        <option key={option} value={option}>
-                                            {option}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="col-md-4">
-                                <label className="form-label text-primaryLight fw-semibold">
-                                    Location
-                                </label>
-                                <select
-                                    className="form-select custom-input"
-                                    value={selectedLocation}
-                                    onChange={(e) => setSelectedLocation(e.target.value)}
-                                >
-                                    {locationOptions.map((option) => {
-                                        const isGroup = option.startsWith('---');
-
-                                        return (
-                                            <option
-                                                key={option}
-                                                value={isGroup ? '' : option}
-                                                disabled={isGroup}
-                                            >
-                                                {option}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                            </div>
-
-                            <div className="col-md-4">
-                                <label className="form-label text-primaryLight fw-semibold">
-                                    Time
-                                </label>
-                                <select
-                                    className="form-select custom-input"
-                                    value={selectedTime}
-                                    onChange={(e) => setSelectedTime(e.target.value)}
-                                >
-                                    {timeOptions.map((option) => (
-                                        <option key={option} value={option}>
-                                            {option}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
                     </div>
 
                     {pageError && (
@@ -332,17 +240,17 @@ function ItemsListPage() {
 
                     {loading ? (
                         <div className="empty-items-state text-center">
-                            <p className="mb-0">Loading items...</p>
+                            <p className="mb-0">Loading claimed items...</p>
                         </div>
                     ) : (
                         <>
                             <div className="mb-3 text-muted">
-                                {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} found
+                                {myClaims.length} claimed item{myClaims.length !== 1 ? 's' : ''}
                             </div>
 
                             <div className="row g-4">
-                                {filteredItems.length > 0 ? (
-                                    filteredItems.map((item) => {
+                                {myClaims.length > 0 ? (
+                                    myClaims.map((item) => {
                                         const icon = categoryIcons[item.category] || categoryIcons.Default;
 
                                         return (
@@ -360,8 +268,11 @@ function ItemsListPage() {
                                                         <p className="mb-2">
                                                             <span className="item-meta-icon">📍</span> {item.location}
                                                         </p>
-                                                        <p className="mb-0">
+                                                        <p className="mb-2">
                                                             <span className="item-meta-icon">🕒</span> {formatFoundAt(item.found_at)}
+                                                        </p>
+                                                        <p className="mb-0">
+                                                            <span className="item-meta-icon">📌</span> Claim Pending
                                                         </p>
                                                     </div>
                                                 </button>
@@ -371,7 +282,7 @@ function ItemsListPage() {
                                 ) : (
                                     <div className="col-12">
                                         <div className="empty-items-state text-center">
-                                            <p className="mb-0">No items match the selected filters.</p>
+                                            <p className="mb-0">You have no claimed items right now.</p>
                                         </div>
                                     </div>
                                 )}
@@ -392,7 +303,7 @@ function ItemsListPage() {
                                 <h2 className="item-card-title mb-1">
                                     {(categoryIcons[selectedItem.category] || categoryIcons.Default)} {selectedItem.category}
                                 </h2>
-                                <p className="auth-subtitle mb-0">General public item details</p>
+                                <p className="auth-subtitle mb-0">Your claim is currently pending review</p>
                             </div>
 
                             <button
@@ -413,13 +324,13 @@ function ItemsListPage() {
 
                         <div className="p-3 rounded-3 bg-light border mb-4">
                             <p className="mb-0 text-secondary">
-                                If you believe this may be your item, submit a claim for review.
+                                If this claim was made by mistake, you can cancel it here.
                             </p>
                         </div>
 
-                        {claimMessage && (
+                        {actionMessage && (
                             <div className="alert alert-info mb-3">
-                                {claimMessage}
+                                {actionMessage}
                             </div>
                         )}
 
@@ -434,11 +345,11 @@ function ItemsListPage() {
 
                             <button
                                 type="button"
-                                className="btn btn-primary auth-btn px-4"
-                                onClick={handleClaimItem}
-                                disabled={isClaiming}
+                                className="btn btn-outline-danger"
+                                onClick={handleCancelClaim}
+                                disabled={isCancelling}
                             >
-                                {isClaiming ? 'Submitting...' : 'Claim This Item'}
+                                {isCancelling ? 'Cancelling...' : 'Cancel Claim'}
                             </button>
                         </div>
                     </div>
@@ -450,4 +361,4 @@ function ItemsListPage() {
     );
 }
 
-export default ItemsListPage;
+export default MyClaimsPage;

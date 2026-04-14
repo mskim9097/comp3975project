@@ -7,6 +7,8 @@ import SignUpPage from './pages/SignUpPage';
 import MainPage from './pages/MainPage';
 import ItemsListPage from './pages/ItemsListPage';
 import AddItemPage from './pages/AddItemPage';
+import MyClaimsPage from './pages/MyClaimsPage';
+import MyAddedItemsPage from './pages/MyAddedItemsPage';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="/main" element={<MainPage />} />
         <Route path="/items" element={<ItemsListPage />} />
         <Route path="/add-item" element={<AddItemPage />} />
+        <Route path="/my-claims" element={<MyClaimsPage />} />
+        <Route path="/my-added-items" element={<MyAddedItemsPage />} />
       </Routes>
     </BrowserRouter>
   );
