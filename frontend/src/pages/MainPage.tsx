@@ -2,8 +2,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../App.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { useEffect } from 'react';
+import AiChatBox from '../components/AiChatBox';
+import MatchedItemsList from '../components/MatchedItemsList';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { AiChatResponse, MatchItem, StructuredData } from '../types/ai';
 
 function MainPage() {
   const navigate = useNavigate();
@@ -11,11 +14,21 @@ function MainPage() {
   const token = localStorage.getItem('token');
   const user = userString ? JSON.parse(userString) : null;
 
+  const [assistantReply, setAssistantReply] = useState('');
+  const [structuredData, setStructuredData] = useState<StructuredData | null>(null);
+  const [matches, setMatches] = useState<MatchItem[]>([]);
+
   useEffect(() => {
     if (!token || !user) {
       navigate('/signin');
     }
   }, [token, user, navigate]);
+
+  const handleAiResult = (result: AiChatResponse) => {
+    setAssistantReply(result.assistant_reply);
+    setStructuredData(result.structured_data);
+    setMatches(result.matches);
+  };
 
   return (
     <>
@@ -37,14 +50,18 @@ function MainPage() {
               Welcome{user?.first_name ? `, ${user.first_name}` : ''}.
             </p>
             <p className="text-muted mb-0">
-              This is the temporary main page for the student portal.
+              Use the AI chat below to search for possible lost item matches.
             </p>
           </div>
 
-          <div className="mt-4 p-3 rounded-3 bg-light border">
-            <p className="mb-0 text-secondary">
-              AI chat, matched item list, and other student features will be added here later.
-            </p>
+          <div className="mt-4 text-start">
+            {token && <AiChatBox token={token} onResult={handleAiResult} />}
+
+            <MatchedItemsList
+              assistantReply={assistantReply}
+              structuredData={structuredData}
+              matches={matches}
+            />
           </div>
         </div>
       </div>
