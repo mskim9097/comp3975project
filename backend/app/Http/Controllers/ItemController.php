@@ -115,6 +115,10 @@ class ItemController extends Controller
         $item = Item::findOrFail($id);
         $user = $request->user();
 
+        $validated = $request->validate([
+            'owner_id' => 'required|exists:users,id',
+        ]);
+
         if (!$user) {
             return response()->json([
                 'message' => 'Unauthenticated.',
