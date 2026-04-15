@@ -47,11 +47,32 @@ class AIChatController extends Controller
 
         $lastRequestedField = $previousStructuredData['last_requested_field'] ?? null;
 
+        $mergedStructuredData = $previousStructuredData ?? [
+            'item_type' => null,
+            'category' => null,
+            'color' => null,
+            'brand' => null,
+            'location' => null,
+            'lost_time' => null,
+            'keywords' => [],
+            'attributes' => [],
+            'skipped_fields' => [],
+            'last_requested_field' => null,
+            'needs_followup' => true,
+            'followup_question' => null,
+        ];
+
         $aiStructuredData = $this->githubModelsService->extractStructuredData($message);
+        $ruleStructuredData = $this->extractDetailsFromMessageRules($message);
 
         $mergedStructuredData = $this->mergeStructuredData(
-            $previousStructuredData,
+            $mergedStructuredData,
             $aiStructuredData
+        );
+
+        $mergedStructuredData = $this->mergeStructuredData(
+            $mergedStructuredData,
+            $ruleStructuredData
         );
 
         $mergedStructuredData = $this->applyDirectAnswerToRequestedField(
@@ -60,9 +81,7 @@ class AIChatController extends Controller
             $lastRequestedField
         );
 
-        $mergedStructuredData = $this->normalizeStructuredData($mergedStructuredData, $message);
-
-        if ($lastRequestedField !== null && $this->isUnknownAnswer($message)) {
+        if ($lastRequestedField !== null && $this->isSkipAnswerForField($message, $lastRequestedField)) {
             $skippedFields = $mergedStructuredData['skipped_fields'] ?? [];
 
             if (!in_array($lastRequestedField, $skippedFields, true)) {
@@ -186,6 +205,8 @@ class AIChatController extends Controller
             'no idea',
             'unknown',
             'idk',
+            'nope',
+            'nah',
         ];
 
         foreach ($unknownPhrases as $phrase) {
@@ -197,6 +218,33 @@ class AIChatController extends Controller
         return false;
     }
 
+    /**
+     * Detects whether the user wants to skip the currently requested field.
+     *
+     * @param string $message the user message
+     * @param string|null $lastRequestedField the last requested field
+     * @return bool
+     */
+    private function isSkipAnswerForField(string $message, ?string $lastRequestedField): bool
+    {
+        $normalized = Str::lower(trim($message));
+
+        if ($this->isUnknownAnswer($message)) {
+            return true;
+        }
+
+        $optionalFields = ['brand', 'lost_time', 'location'];
+
+        if (
+            in_array($lastRequestedField, $optionalFields, true) &&
+            in_array($normalized, ['no', 'n', 'none'], true)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+    
     /**
      * Detects whether the user is saying there is no extra feature.
      *
@@ -251,34 +299,49 @@ class AIChatController extends Controller
             return $structuredData;
         }
 
-        if ($this->isUnknownAnswer($message) || $this->isNegativeFeatureAnswer($message)) {
+        if (
+            $this->isSkipAnswerForField($message, $lastRequestedField) ||
+            ($lastRequestedField === 'attributes' && $this->isNegativeFeatureAnswer($message))
+        ) {
             return $structuredData;
         }
 
         if ($lastRequestedField === 'lost_time' && empty($structuredData['lost_time'])) {
-        if (Str::contains($value, 'morning')) {
-            $structuredData['lost_time'] = 'Morning';
+            if (
+                Str::contains($value, 'morning') ||
+                preg_match('/\b(6|7|8|9|10|11)\s*am\b/', $value)
+            ) {
+                $structuredData['lost_time'] = 'Morning';
+                return $structuredData;
+            }
+
+            if (
+                Str::contains($value, 'afternoon') ||
+                preg_match('/\b(12|1|2|3|4)\s*pm\b/', $value)
+            ) {
+                $structuredData['lost_time'] = 'Afternoon';
+                return $structuredData;
+            }
+
+            if (
+                Str::contains($value, 'evening') ||
+                preg_match('/\b(5|6|7|8)\s*pm\b/', $value)
+            ) {
+                $structuredData['lost_time'] = 'Evening';
+                return $structuredData;
+            }
+
+            if (
+                Str::contains($value, 'night') ||
+                preg_match('/\b(9|10|11)\s*pm\b/', $value)
+            ) {
+                $structuredData['lost_time'] = 'Night';
+                return $structuredData;
+            }
+
+            $structuredData['lost_time'] = ucfirst($rawValue);
             return $structuredData;
         }
-
-        if (Str::contains($value, 'afternoon')) {
-            $structuredData['lost_time'] = 'Afternoon';
-            return $structuredData;
-        }
-
-        if (Str::contains($value, 'evening')) {
-            $structuredData['lost_time'] = 'Evening';
-            return $structuredData;
-        }
-
-        if (Str::contains($value, 'night')) {
-            $structuredData['lost_time'] = 'Night';
-            return $structuredData;
-        }
-
-        $structuredData['lost_time'] = ucfirst($rawValue);
-        return $structuredData;
-    }
 
         if ($lastRequestedField === 'color' && empty($structuredData['color'])) {
             $structuredData['color'] = ucfirst($rawValue);
@@ -287,6 +350,13 @@ class AIChatController extends Controller
 
         if ($lastRequestedField === 'location' && empty($structuredData['location'])) {
             $structuredData['location'] = strtoupper($rawValue);
+            return $structuredData;
+        }
+
+        if ($lastRequestedField === 'brand' && empty($structuredData['brand'])) {
+            $structuredData['brand'] = ucfirst($rawValue);
+            $structuredData['keywords'][] = $value;
+            $structuredData['keywords'] = array_values(array_unique($structuredData['keywords']));
             return $structuredData;
         }
 
@@ -299,11 +369,118 @@ class AIChatController extends Controller
 
         if ($lastRequestedField === 'attributes') {
             $structuredData['attributes'][] = $rawValue;
-            $structuredData['attributes'] = array_values(array_unique(array_filter($structuredData['attributes'])));
+            $structuredData['attributes'] = array_values(
+                array_unique(array_filter($structuredData['attributes']))
+            );
             return $structuredData;
         }
 
         return $structuredData;
+    }
+
+    /**
+     * Extracts simple lost-item details from a free-form message using rules.
+     *
+     * @param string $message the user message
+     * @return array<string, mixed>
+     */
+    private function extractDetailsFromMessageRules(string $message): array
+    {
+        $text = Str::lower(trim($message));
+
+        $data = [
+            'category' => null,
+            'color' => null,
+            'location' => null,
+            'brand' => null,
+            'lost_time' => null,
+            'attributes' => [],
+            'keywords' => [],
+        ];
+
+        $categories = [
+            'wallet', 'phone', 'backpack', 'bag', 'laptop',
+            'tablet', 'airpods', 'keys', 'key', 'card', 'bottle',
+        ];
+
+        $colors = [
+            'black', 'white', 'red', 'blue', 'green',
+            'pink', 'gray', 'grey', 'silver', 'gold', 'brown',
+        ];
+
+        foreach ($categories as $category) {
+            if (preg_match('/\b' . preg_quote($category, '/') . '\b/', $text)) {
+                $data['category'] = ucfirst($category);
+                $data['keywords'][] = $category;
+                break;
+            }
+        }
+
+        foreach ($colors as $color) {
+            if (preg_match('/\b' . preg_quote($color, '/') . '\b/', $text)) {
+                $data['color'] = ucfirst($color);
+                $data['keywords'][] = $color;
+                break;
+            }
+        }
+
+        if (
+            preg_match('/\b(?:at|near|in)\s+the\s+([a-z][a-z0-9\s-]{1,40})/i', $text, $matches) ||
+            preg_match('/\b(?:at|near|in)\s+([a-z][a-z0-9\s-]{1,40})/i', $text, $matches)
+        ) {
+            $location = trim($matches[1]);
+            $location = preg_replace(
+                '/\b(this|today|yesterday|morning|moring|afternoon|evening|night)\b.*$/i',
+                '',
+                $location
+            );
+            $location = trim((string) $location);
+
+            if ($location !== '') {
+                $data['location'] = ucwords($location);
+                $data['keywords'][] = Str::lower($location);
+            }
+        }
+
+        if (
+            Str::contains($text, 'this morning') ||
+            Str::contains($text, 'in the morning') ||
+            Str::contains($text, 'today morning') ||
+            Str::contains($text, 'this moring') ||
+            preg_match('/\bmorning\b/i', $text)
+        ) {
+            $data['lost_time'] = 'Morning';
+        } elseif (
+            Str::contains($text, 'this afternoon') ||
+            Str::contains($text, 'in the afternoon') ||
+            preg_match('/\bafternoon\b/i', $text)
+        ) {
+            $data['lost_time'] = 'Afternoon';
+        } elseif (
+            Str::contains($text, 'this evening') ||
+            Str::contains($text, 'in the evening') ||
+            preg_match('/\bevening\b/i', $text)
+        ) {
+            $data['lost_time'] = 'Evening';
+        } elseif (
+            Str::contains($text, 'tonight') ||
+            Str::contains($text, 'at night') ||
+            preg_match('/\bnight\b/i', $text)
+        ) {
+            $data['lost_time'] = 'Night';
+        } elseif (preg_match('/\b(6|7|8|9|10|11)\s*am\b/i', $text)) {
+            $data['lost_time'] = 'Morning';
+        } elseif (preg_match('/\b(12|1|2|3|4)\s*pm\b/i', $text)) {
+            $data['lost_time'] = 'Afternoon';
+        } elseif (preg_match('/\b(5|6|7|8)\s*pm\b/i', $text)) {
+            $data['lost_time'] = 'Evening';
+        } elseif (preg_match('/\b(9|10|11)\s*pm\b/i', $text)) {
+            $data['lost_time'] = 'Night';
+        }
+
+        $data['keywords'] = array_values(array_unique(array_filter($data['keywords'])));
+
+        return $data;
     }
 
     /**

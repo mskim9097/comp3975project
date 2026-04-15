@@ -5,15 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import ItemCard from '../components/ItemCard';
-import ClaimItemModal from '../components/ClaimItemModal';
 import type { ItemLike } from '../types/item';
-
-// type User = {
-//     id: number;
-//     first_name?: string;
-//     last_name?: string;
-//     email?: string;
-// };
 
 const locationOptions = [
     'All',
@@ -56,13 +48,11 @@ function ItemsListPage() {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedLocation, setSelectedLocation] = useState('All');
     const [selectedTime, setSelectedTime] = useState('All');
-    const [selectedItem, setSelectedItem] = useState<ItemLike | null>(null);
     const [loading, setLoading] = useState(true);
     const [pageError, setPageError] = useState('');
 
     const token = localStorage.getItem('token');
     const userString = localStorage.getItem('user');
-    // const currentUser: User | null = userString ? JSON.parse(userString) : null;
 
     useEffect(() => {
         if (!token || !userString) {
@@ -236,10 +226,7 @@ function ItemsListPage() {
                                 {filteredItems.length > 0 ? (
                                     filteredItems.map((item) => (
                                         <div key={item.id} className="col-md-6 col-lg-4">
-                                            <ItemCard
-                                                item={item}
-                                                onClick={handleOpenModal}
-                                            />
+                                            <ItemCard item={item} />
                                         </div>
                                     ))
                                 ) : (
@@ -254,13 +241,6 @@ function ItemsListPage() {
                     )}
                 </div>
             </div>
-
-            <ClaimItemModal
-                item={selectedItem}
-                token={token}
-                onClose={handleCloseModal}
-                onClaimSuccess={handleClaimSuccess}
-            />
 
             <Footer />
         </>
