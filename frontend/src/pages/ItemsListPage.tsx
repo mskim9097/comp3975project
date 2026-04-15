@@ -4,59 +4,31 @@ import '../App.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
+import ItemCard from '../components/ItemCard';
+import ClaimItemModal from '../components/ClaimItemModal';
+import type { ItemLike } from '../types/item';
 
-type User = {
-    id: number;
-    first_name?: string;
-    last_name?: string;
-    email?: string;
-};
-
-type Item = {
-    id: number;
-    name: string;
-    description: string | null;
-    category: string;
-    color: string | null;
-    brand: string | null;
-    location: string;
-    finder_id: number | null;
-    owner_id: number | null;
-    status: 'pending' | 'active' | 'claim_pending' | 'returned';
-    found_at: string | null;
-};
+// type User = {
+//     id: number;
+//     first_name?: string;
+//     last_name?: string;
+//     email?: string;
+// };
 
 const locationOptions = [
     'All',
-
     '--- SW Buildings ---',
     'SW1', 'SW2', 'SW3', 'SW5', 'SW7', 'SW9', 'SW10', 'SW12', 'SW13', 'SW14', 'SW16',
-
     '--- SE Buildings ---',
     'SE1', 'SE2', 'SE3', 'SE4', 'SE6', 'SE8', 'SE9', 'SE10', 'SE12', 'SE14', 'SE16', 'SE30',
-
     '--- NE Buildings ---',
     'NE1', 'NE3', 'NE4', 'NE6', 'NE8', 'NE9', 'NE10', 'NE12',
-
     '--- NW Buildings ---',
-    'NW1', 'NW3', 'NW4', 'NW5', 'NW6'
+    'NW1', 'NW3', 'NW4', 'NW5', 'NW6',
 ];
+
 const categoryOptions = ['All', 'Wallet', 'Backpack', 'Keys', 'Phone', 'Earbuds', 'Laptop', 'ID', 'Bottle', 'Headphones', 'Others'];
 const timeOptions = ['All', 'Morning', 'Afternoon', 'Evening', 'Night'];
-
-const categoryIcons: Record<string, string> = {
-    Wallet: '👛',
-    Backpack: '🎒',
-    Keys: '🔑',
-    Phone: '📱',
-    Earbuds: '🎧',
-    Laptop: '💻',
-    ID: '🪪',
-    Bottle: '🧴',
-    Headphones: '🎧',
-    Others: '📦',
-    Default: '📦',
-};
 
 function getTimeOfDay(dateString: string): string {
     const date = new Date(dateString);
@@ -77,52 +49,20 @@ function getTimeOfDay(dateString: string): string {
     return 'Night';
 }
 
-function getOrdinal(day: number): string {
-    if (day > 3 && day < 21) {
-        return 'th';
-    }
-
-    switch (day % 10) {
-        case 1:
-            return 'st';
-        case 2:
-            return 'nd';
-        case 3:
-            return 'rd';
-        default:
-            return 'th';
-    }
-}
-
-function formatFoundAt(dateString: string | null): string {
-    if (!dateString) {
-        return 'Time not available';
-    }
-
-    const date = new Date(dateString);
-    const month = date.toLocaleString('en-US', { month: 'long' });
-    const day = date.getDate();
-    const timeOfDay = getTimeOfDay(dateString);
-
-    return `${month} ${day}${getOrdinal(day)} · ${timeOfDay}`;
-}
-
 function ItemsListPage() {
     const navigate = useNavigate();
 
-    const [items, setItems] = useState<Item[]>([]);
+    const [items, setItems] = useState<ItemLike[]>([]);
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedLocation, setSelectedLocation] = useState('All');
     const [selectedTime, setSelectedTime] = useState('All');
-    const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+    const [selectedItem, setSelectedItem] = useState<ItemLike | null>(null);
     const [loading, setLoading] = useState(true);
     const [pageError, setPageError] = useState('');
-    const [claimMessage, setClaimMessage] = useState('');
-    const [isClaiming, setIsClaiming] = useState(false);
 
     const token = localStorage.getItem('token');
     const userString = localStorage.getItem('user');
-    const currentUser: User | null = userString ? JSON.parse(userString) : null;
+    // const currentUser: User | null = userString ? JSON.parse(userString) : null;
 
     useEffect(() => {
         if (!token || !userString) {
@@ -178,74 +118,26 @@ function ItemsListPage() {
             });
     }, [items, selectedCategory, selectedLocation, selectedTime]);
 
-    const handleOpenModal = (item: Item) => {
+    const handleOpenModal = (item: ItemLike) => {
         setSelectedItem(item);
-        setClaimMessage('');
     };
 
     const handleCloseModal = () => {
         setSelectedItem(null);
-        setClaimMessage('');
     };
 
-    const handleClaimItem = async () => {
-        if (!selectedItem || !currentUser) {
-            return;
-        }
-
-        try {
-            setIsClaiming(true);
-            setClaimMessage('');
-
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/items/${selectedItem.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                    Authorization: token ? `Bearer ${token}` : '',
-                },
-                body: JSON.stringify({
-                    name: selectedItem.name,
-                    description: selectedItem.description,
-                    category: selectedItem.category,
-                    color: selectedItem.color,
-                    brand: selectedItem.brand,
-                    location: selectedItem.location,
-                    finder_id: selectedItem.finder_id,
-                    owner_id: currentUser.id,
-                    status: 'claim_pending',
-                    found_at: selectedItem.found_at,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                setClaimMessage(data.message || 'Failed to submit claim.');
-                return;
-            }
-
-            setClaimMessage(
-                'Claim submitted. Please contact 778-123-4567 or visit SE12-325 Lost & Found Office.'
-            );
-
-            setItems((prevItems) =>
-                prevItems.map((item) =>
-                    item.id === selectedItem.id
-                        ? {
-                            ...item,
-                            status: 'claim_pending',
-                            owner_id: currentUser.id,
-                        }
-                        : item
-                )
-            );
-        } catch (error) {
-            console.error(error);
-            setClaimMessage('Something went wrong while submitting your claim.');
-        } finally {
-            setIsClaiming(false);
-        }
+    const handleClaimSuccess = (itemId: number, ownerId: number) => {
+        setItems((prevItems) =>
+            prevItems.map((item) =>
+                item.id === itemId
+                    ? {
+                        ...item,
+                        status: 'claim_pending',
+                        owner_id: ownerId,
+                    }
+                    : item
+            )
+        );
     };
 
     return (
@@ -342,32 +234,14 @@ function ItemsListPage() {
 
                             <div className="row g-4">
                                 {filteredItems.length > 0 ? (
-                                    filteredItems.map((item) => {
-                                        const icon = categoryIcons[item.category] || categoryIcons.Default;
-
-                                        return (
-                                            <div key={item.id} className="col-md-6 col-lg-4">
-                                                <button
-                                                    type="button"
-                                                    className="item-card h-100 text-start w-100 border-0"
-                                                    onClick={() => handleOpenModal(item)}
-                                                >
-                                                    <div className="item-icon-wrap">{icon}</div>
-
-                                                    <h3 className="item-card-title">{item.category}</h3>
-
-                                                    <div className="item-meta">
-                                                        <p className="mb-2">
-                                                            <span className="item-meta-icon">📍</span> {item.location}
-                                                        </p>
-                                                        <p className="mb-0">
-                                                            <span className="item-meta-icon">🕒</span> {formatFoundAt(item.found_at)}
-                                                        </p>
-                                                    </div>
-                                                </button>
-                                            </div>
-                                        );
-                                    })
+                                    filteredItems.map((item) => (
+                                        <div key={item.id} className="col-md-6 col-lg-4">
+                                            <ItemCard
+                                                item={item}
+                                                onClick={handleOpenModal}
+                                            />
+                                        </div>
+                                    ))
                                 ) : (
                                     <div className="col-12">
                                         <div className="empty-items-state text-center">
@@ -381,69 +255,12 @@ function ItemsListPage() {
                 </div>
             </div>
 
-            {selectedItem && (
-                <div className="custom-modal-backdrop" onClick={handleCloseModal}>
-                    <div
-                        className="custom-modal-card"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h2 className="item-card-title mb-1">
-                                    {(categoryIcons[selectedItem.category] || categoryIcons.Default)} {selectedItem.category}
-                                </h2>
-                                <p className="auth-subtitle mb-0">General public item details</p>
-                            </div>
-
-                            <button
-                                type="button"
-                                className="btn-close"
-                                onClick={handleCloseModal}
-                            ></button>
-                        </div>
-
-                        <div className="item-meta mb-4">
-                            <p className="mb-2">
-                                <span className="item-meta-icon">📍</span> {selectedItem.location}
-                            </p>
-                            <p className="mb-0">
-                                <span className="item-meta-icon">🕒</span> {formatFoundAt(selectedItem.found_at)}
-                            </p>
-                        </div>
-
-                        <div className="p-3 rounded-3 bg-light border mb-4">
-                            <p className="mb-0 text-secondary">
-                                If you believe this may be your item, submit a claim for review.
-                            </p>
-                        </div>
-
-                        {claimMessage && (
-                            <div className="alert alert-info mb-3">
-                                {claimMessage}
-                            </div>
-                        )}
-
-                        <div className="d-flex justify-content-end gap-2">
-                            <button
-                                type="button"
-                                className="btn btn-light"
-                                onClick={handleCloseModal}
-                            >
-                                Close
-                            </button>
-
-                            <button
-                                type="button"
-                                className="btn btn-primary auth-btn px-4"
-                                onClick={handleClaimItem}
-                                disabled={isClaiming}
-                            >
-                                {isClaiming ? 'Submitting...' : 'Claim This Item'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ClaimItemModal
+                item={selectedItem}
+                token={token}
+                onClose={handleCloseModal}
+                onClaimSuccess={handleClaimSuccess}
+            />
 
             <Footer />
         </>

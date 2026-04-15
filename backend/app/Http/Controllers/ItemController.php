@@ -57,56 +57,75 @@ class ItemController extends Controller
 
     public function update(Request $request, string $id)
     {
-        $item = Item::find($id);
+        $item = Item::findOrFail($id);
 
-        if (!$item) {
-            return response()->json(['message' => 'Item not found'], 404);
-        }
-
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|string|max:255',
             'color' => 'nullable|string|max:255',
             'brand' => 'nullable|string|max:255',
             'location' => 'required|string|max:255',
-            'finder_id' => 'nullable|exists:users,id',
+            'finder_id' => 'required|exists:users,id',
             'owner_id' => 'nullable|exists:users,id',
-            'status' => 'required|string|in:pending,active,claim_pending,returned',
+            'status' => 'required|in:pending,active,claim_pending,returned',
             'found_at' => 'nullable|date',
         ]);
 
-        $wasReturnedBefore = $item->status === 'returned';
+        /*
+        * Prevent duplicate or invalid claim requests.
+        * A claim is only allowed when the item is currently active.
+        */
+        $isClaimRequest =
+            $validated['status'] === 'claim_pending' &&
+            !empty($validated['owner_id']);
 
-        $item->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'category' => $request->category,
-            'color' => $request->color,
-            'brand' => $request->brand,
-            'location' => $request->location,
-            'finder_id' => $request->finder_id,
-            'owner_id' => $request->owner_id,
-            'status' => $request->status,
-            'found_at' => $request->found_at,
-        ]);
+        if ($isClaimRequest) {
+            if ($item->status !== 'active') {
+                return response()->json([
+                    'message' => 'This item is no longer available for claim.',
+                ], 409);
+            }
 
-        if (
-            !$wasReturnedBefore &&
-            $item->status === 'returned' &&
-            $item->owner_id !== null
-        ) {
-            ReturnLog::create([
-                'item_id' => $item->id,
-                'finder_id' => $item->finder_id,
-                'owner_id' => $item->owner_id,
-                'returned_at' => now(),
-            ]);
+            if (!empty($item->owner_id) && (int) $item->owner_id !== (int) $validated['owner_id']) {
+                return response()->json([
+                    'message' => 'This item has already been claimed by another user.',
+                ], 409);
+            }
         }
 
+        $item->update($validated);
+
+        return response()->json($item);
+    }
+
+    public function claim(Request $request, string $id)
+    {
+        $item = Item::findOrFail($id);
+
+        $validated = $request->validate([
+            'owner_id' => 'required|exists:users,id',
+        ]);
+
+        if ($item->status !== 'active') {
+            return response()->json([
+                'message' => 'This item is no longer available for claim.',
+            ], 409);
+        }
+
+        if (!empty($item->owner_id) && (int) $item->owner_id !== (int) $validated['owner_id']) {
+            return response()->json([
+                'message' => 'This item has already been claimed by another user.',
+            ], 409);
+        }
+
+        $item->owner_id = $validated['owner_id'];
+        $item->status = 'claim_pending';
+        $item->save();
+
         return response()->json([
-            'success' => true,
-            'data' => $item->load(['finder', 'owner']),
+            'message' => 'Claim submitted successfully.',
+            'item' => $item,
         ]);
     }
 
