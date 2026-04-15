@@ -708,7 +708,7 @@ class AIChatController extends Controller
     private function findMatches(array $structuredData): array
     {
         $items = Item::query()
-            ->whereIn('status', 'active')
+            ->where('status', 'active')
             ->get();
 
         $scored = $items->map(function (Item $item) use ($structuredData): array {
