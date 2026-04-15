@@ -25,9 +25,13 @@ function AiChatBox({ token, onResult }: AiChatBoxProps) {
     const apiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000';
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLTextAreaElement | null>(null);
+    const chatContainerRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const el = chatContainerRef.current;
+        if (el) {
+            el.scrollTop = el.scrollHeight;
+        }
     }, [messages, loading]);
 
     useEffect(() => {
@@ -129,6 +133,7 @@ function AiChatBox({ token, onResult }: AiChatBoxProps) {
                 style={{ height: '600px', display: 'flex', flexDirection: 'column' }}
             >
                 <div
+                    ref={chatContainerRef}
                     className="flex-grow-1 px-3 pt-3"
                     style={{
                         overflowY: 'auto',
@@ -172,8 +177,6 @@ function AiChatBox({ token, onResult }: AiChatBoxProps) {
                             </div>
                         </div>
                     )}
-
-                    <div ref={messagesEndRef}></div>
                 </div>
 
                 <div className="border-top p-3 bg-white">

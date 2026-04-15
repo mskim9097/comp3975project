@@ -258,7 +258,7 @@ function MyAddedItemsPage() {
         return;
       }
 
-      const updatedItem = data.data;
+      const updatedItem = data.data ?? data;
 
       setItems((prevItems) =>
         prevItems.map((item) =>
@@ -414,12 +414,6 @@ function MyAddedItemsPage() {
               </div>
             )}
 
-            {modalSuccess && (
-              <div className="alert alert-success mb-3">
-                {modalSuccess}
-              </div>
-            )}
-
             <div className="mb-3">
               <label className="form-label text-primaryLight fw-semibold">
                 Item Name
@@ -516,6 +510,12 @@ function MyAddedItemsPage() {
                 placeholder="Optional notes for admin review"
               />
             </div>
+
+            {modalSuccess && (
+              <div className="alert alert-success mb-3">
+                {modalSuccess}
+              </div>
+            )}
 
             <div className="d-flex justify-content-end gap-2">
               <button
