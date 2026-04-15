@@ -29,9 +29,11 @@ jobs:
         with:
           files: 'composer.json'
 
-      - name: Run composer install if composer.json exists
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
+      - name: Run composer install
+        run: |
+          cd backend
+          composer validate --no-check-publish
+          composer install --prefer-dist --no-progress
 
 
       - name: Upload artifact for deployment job
@@ -66,5 +68,5 @@ jobs:
         with:
           app-name: 'lost-and-found'
           slot-name: 'Production'
-          package: .
+          package: backend
           
