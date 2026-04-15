@@ -22,6 +22,11 @@ class Item extends Model
         'found_at',
     ];
 
+    public function setStatusAttribute($value)
+    {
+        $this->attributes['status'] = is_string($value) ? strtolower($value) : $value;
+    }
+
     public function finder()
     {
         return $this->belongsTo(User::class, 'finder_id');

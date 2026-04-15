@@ -37,7 +37,7 @@ class ItemController extends Controller
             'location' => $request->location,
             'finder_id' => $request->finder_id,
             'owner_id' => null,
-            'status' => 'Pending',
+            'status' => 'pending',
             'found_at' => $request->found_at,
         ]);
 
@@ -68,16 +68,16 @@ class ItemController extends Controller
             'location' => 'required|string|max:255',
             'finder_id' => 'required|exists:users,id',
             'owner_id' => 'nullable|exists:users,id',
-            'status' => 'required|in:Pending,Active,Claim Pending,Returned',
+            'status' => 'required|in:pending,active,claim pending,returned',
             'found_at' => 'nullable|date',
         ]);
 
         $isClaimRequest =
-            $validated['status'] === 'Claim Pending' &&
+            $validated['status'] === 'claim pending' &&
             !empty($validated['owner_id']);
 
         if ($isClaimRequest) {
-            if ($item->status !== 'Active') {
+            if ($item->status !== 'active') {
                 return response()->json([
                     'message' => 'This item is no longer available for claim.',
                 ], 409);
@@ -125,7 +125,7 @@ class ItemController extends Controller
             ], 401);
         }
 
-        if ($item->status !== 'Active') {
+        if ($item->status !== 'active') {
             return response()->json([
                 'message' => 'This item is no longer available for claim.',
             ], 409);
@@ -138,7 +138,7 @@ class ItemController extends Controller
         }
 
         $item->owner_id = $validated['owner_id'];
-        $item->status = 'Claim Pending';
+        $item->status = 'claim pending';
         $item->save();
 
         return response()->json([
