@@ -23,7 +23,6 @@ function AiChatBox({ token, onResult }: AiChatBoxProps) {
     const [structuredData, setStructuredData] = useState<StructuredData | null>(null);
 
     const apiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000';
-    const messagesEndRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLTextAreaElement | null>(null);
     const chatContainerRef = useRef<HTMLDivElement | null>(null);
 
