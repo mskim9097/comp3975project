@@ -102,10 +102,13 @@ class ItemController extends Controller
     public function claim(Request $request, string $id)
     {
         $item = Item::findOrFail($id);
+        $user = $request->user();
 
-        $validated = $request->validate([
-            'owner_id' => 'required|exists:users,id',
-        ]);
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
 
         if ($item->status !== 'active') {
             return response()->json([
@@ -113,13 +116,13 @@ class ItemController extends Controller
             ], 409);
         }
 
-        if (!empty($item->owner_id) && (int) $item->owner_id !== (int) $validated['owner_id']) {
+        if (!empty($item->owner_id) && (int) $item->owner_id !== (int) $user->id) {
             return response()->json([
                 'message' => 'This item has already been claimed by another user.',
             ], 409);
         }
 
-        $item->owner_id = $validated['owner_id'];
+        $item->owner_id = $user->id;
         $item->status = 'claim_pending';
         $item->save();
 
