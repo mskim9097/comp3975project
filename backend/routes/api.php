@@ -15,6 +15,9 @@ Route::post('register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
+
+    Route::post('ai/chat', [AIChatController::class, 'chat']);
+    Route::post('items/{id}/claim', [ItemController::class, 'claim']);
 });
 
 // Existing routes
@@ -27,5 +30,3 @@ Route::apiResource('items', ItemController::class);
 
 Route::get('return-logs', [ReturnLogController::class, 'index']);
 Route::get('return-logs/{id}', [ReturnLogController::class, 'show']);
-
-Route::post('ai/chat', [AIChatController::class, 'chat']);

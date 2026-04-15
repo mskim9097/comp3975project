@@ -6,7 +6,7 @@ import AiChatBox from '../components/AiChatBox';
 import MatchedItemsList from '../components/MatchedItemsList';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { AiChatResponse, MatchItem, StructuredData } from '../types/ai';
+import type { AiChatResponse, MatchItem } from '../types/ai';
 
 function MainPage() {
   const navigate = useNavigate();
@@ -14,8 +14,6 @@ function MainPage() {
   const token = localStorage.getItem('token');
   const user = userString ? JSON.parse(userString) : null;
 
-  const [assistantReply, setAssistantReply] = useState('');
-  const [structuredData, setStructuredData] = useState<StructuredData | null>(null);
   const [matches, setMatches] = useState<MatchItem[]>([]);
 
   useEffect(() => {
@@ -25,8 +23,6 @@ function MainPage() {
   }, [token, user, navigate]);
 
   const handleAiResult = (result: AiChatResponse) => {
-    setAssistantReply(result.assistant_reply);
-    setStructuredData(result.structured_data);
     setMatches(result.matches);
   };
 
@@ -58,9 +54,8 @@ function MainPage() {
             {token && <AiChatBox token={token} onResult={handleAiResult} />}
 
             <MatchedItemsList
-              assistantReply={assistantReply}
-              structuredData={structuredData}
               matches={matches}
+              token={token}
             />
           </div>
         </div>
