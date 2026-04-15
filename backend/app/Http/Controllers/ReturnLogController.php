@@ -2,17 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\ReturnLog;
 
 class ReturnLogController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(
-            ReturnLog::with(['item', 'finder', 'owner'])
-                ->orderBy('returned_at', 'desc')
-                ->get()
-        );
+        $query = ReturnLog::with(['item', 'finder', 'owner']);
+
+        if ($request->filled('student_id')) {
+            $studentId = $request->student_id;
+
+            $query->where(function ($q) use ($studentId) {
+                $q->whereHas('finder', function ($sub) use ($studentId) {
+                    $sub->where('student_id', 'like', "%{$studentId}%");
+                })->orWhereHas('owner', function ($sub) use ($studentId) {
+                    $sub->where('student_id', 'like', "%{$studentId}%");
+                });
+            });
+        }
+
+        if ($request->filled('date')) {
+            $query->whereDate('returned_at', $request->date);
+        }
+
+        $logs = $query
+            ->orderBy('returned_at', 'desc')
+            ->get();
+
+        return view('admin.logs', compact('logs'));
     }
 
     public function show(string $id)
