@@ -1,0 +1,128 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\Item;
+use Carbon\Carbon;
+
+class ItemSeeder extends Seeder
+{
+    public function run(): void
+    {
+        Item::insert([
+            [
+                'name' => 'Black Wallet',
+                'description' => 'Lost near hallway',
+                'category' => 'Wallet',
+                'color' => 'Black',
+                'brand' => 'Gucci',
+                'location' => 'SW1',
+                'finder_id' => 2,
+                'owner_id' => null,
+                'status' => 'active',
+                'found_at' => Carbon::parse('2026-04-03 09:30'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'iPhone 13',
+                'description' => 'Found on desk',
+                'category' => 'Phone',
+                'color' => 'White',
+                'brand' => 'Apple',
+                'location' => 'SE14',
+                'finder_id' => 3,
+                'owner_id' => null,
+                'status' => 'active',
+                'found_at' => Carbon::parse('2026-04-03 14:10'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'AirPods',
+                'description' => 'Found near entrance',
+                'category' => 'Earbuds',
+                'color' => 'White',
+                'brand' => 'Apple',
+                'location' => 'SW3',
+                'finder_id' => 2,
+                'owner_id' => null,
+                'status' => 'active',
+                'found_at' => Carbon::parse('2026-04-04 11:20'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Laptop Bag',
+                'description' => 'Black bag',
+                'category' => 'Backpack',
+                'color' => 'Black',
+                'brand' => 'Samsonite',
+                'location' => 'SE6',
+                'finder_id' => 3,
+                'owner_id' => null,
+                'status' => 'active',
+                'found_at' => Carbon::parse('2026-04-04 16:45'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Car Keys',
+                'description' => 'Keys with remote',
+                'category' => 'Keys',
+                'color' => 'Black',
+                'brand' => null,
+                'location' => 'SW2',
+                'finder_id' => 2,
+                'owner_id' => null,
+                'status' => 'active',
+                'found_at' => Carbon::parse('2026-04-05 10:15'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Student ID',
+                'description' => 'BCIT card',
+                'category' => 'ID',
+                'color' => null,
+                'brand' => null,
+                'location' => 'SE12',
+                'finder_id' => 3,
+                'owner_id' => null,
+                'status' => 'active',
+                'found_at' => Carbon::parse('2026-04-05 13:00'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Water Bottle',
+                'description' => 'Metal bottle',
+                'category' => 'Bottle',
+                'color' => 'Blue',
+                'brand' => 'Hydro Flask',
+                'location' => 'SW1',
+                'finder_id' => 2,
+                'owner_id' => null,
+                'status' => 'active',
+                'found_at' => Carbon::parse('2026-04-06 08:50'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Headphones',
+                'description' => 'Over-ear headphones',
+                'category' => 'Headphones',
+                'color' => 'Black',
+                'brand' => 'Sony',
+                'location' => 'SE14',
+                'finder_id' => 3,
+                'owner_id' => null,
+                'status' => 'active',
+                'found_at' => Carbon::parse('2026-04-06 18:10'),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+    }
+}
