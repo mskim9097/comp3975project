@@ -10,9 +10,9 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::get('/dashboard', function () {
+    return redirect()->route('admin.items.index');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -20,8 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/admin/logs', [ReturnLogController::class, 'index'])->name('admin.logs');
     Route::get('/admin/items', [App\Http\Controllers\Admin\ItemController::class, 'index'])->name('admin.items.index');
-    Route::patch('/admin/items/{id}/approve', [ItemController::class, 'approve'])->name('admin.items.approve');
-    Route::patch('/admin/items/{id}/reject', [ItemController::class, 'reject'])->name('admin.items.reject');
+    Route::patch('/admin/items/{id}/status', [App\Http\Controllers\Admin\ItemController::class, 'updateStatus'])->name('admin.items.updateStatus');
 });
 
 require __DIR__.'/auth.php';

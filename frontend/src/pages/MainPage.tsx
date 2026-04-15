@@ -3,7 +3,7 @@ import '../App.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import AiChatBox from '../components/AiChatBox';
-import MatchedItemsList from '../components/MatchedItemsList';
+import PublicMatchedItems from '../components/PublicMatchedItems';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { AiChatResponse, MatchItem } from '../types/ai';
@@ -53,8 +53,8 @@ function MainPage() {
           <div className="mt-4 text-start">
             {token && <AiChatBox token={token} onResult={handleAiResult} />}
 
-            <MatchedItemsList
-              matches={matches}
+            <PublicMatchedItems
+              items={matches}
               token={token}
             />
           </div>
