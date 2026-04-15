@@ -22,7 +22,7 @@ type Item = {
   location: string;
   finder_id: number | null;
   owner_id: number | null;
-  status: 'Pending' | 'Active' | 'Claim Pending' | 'Returned';
+  status: 'pending' | 'active' | 'claim pending' | 'returned';
   found_at: string | null;
 };
 
@@ -188,7 +188,7 @@ function MyAddedItemsPage() {
     }
 
     return items.filter(
-      (item) => item.status === 'Pending' && item.finder_id === currentUser.id
+      (item) => item.status === 'pending' && item.finder_id === currentUser.id
     );
   }, [items, currentUser]);
 

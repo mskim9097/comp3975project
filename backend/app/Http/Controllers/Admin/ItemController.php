@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Item;
+use App\Models\ReturnLog;
 
 class ItemController extends Controller
 {
@@ -36,15 +37,34 @@ class ItemController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        $request->validate([
+            'status' => 'required|in:pending,active,claim pending,returned',
+        ]);
+
         $item = Item::findOrFail($id);
         $newStatus = $request->input('status'); 
 
-        if ($newStatus === 'Active') {
+        $wasReturnedBefore = $item->status === 'returned';
+
+        if ($newStatus === 'active') {
             $item->owner_id = null;
         }
 
         $item->status = $newStatus;
         $item->save();
+
+        if (
+            !$wasReturnedBefore &&
+            $item->status === 'returned' &&
+            $item->owner_id !== null
+        ) {
+            ReturnLog::create([
+                'item_id' => $item->id,
+                'finder_id' => $item->finder_id,
+                'owner_id' => $item->owner_id,
+                'returned_at' => now(),
+            ]);
+        }
 
         return redirect()->back();
     }

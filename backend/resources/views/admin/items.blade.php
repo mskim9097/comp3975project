@@ -100,11 +100,11 @@
                                                 <select name="status" class="block w-full border-gray-300 rounded-md shadow-sm text-sm py-1">
                                                     
                                                     @if(strtolower($item->status) === 'pending')
-                                                        <option value="Active">Active</option>
+                                                        <option value="active">Active</option>
                                                     
                                                     @elseif(strtolower($item->status) === 'claim pending')
-                                                        <option value="Active">Active</option>
-                                                        <option value="Returned">Returned</option>
+                                                        <option value="active">Active</option>
+                                                        <option value="returned">Returned</option>
                                                     @endif
                                                     
                                                 </select>
