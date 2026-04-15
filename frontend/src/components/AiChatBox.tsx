@@ -24,15 +24,27 @@ function AiChatBox({ token, onResult }: AiChatBoxProps) {
 
     const apiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000';
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, loading]);
 
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, []);
+
+    const focusInput = () => {
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 0);
+    };
+
     const sendMessage = async () => {
         const trimmedMessage = message.trim();
 
         if (!trimmedMessage || loading) {
+            focusInput();
             return;
         }
 
@@ -48,6 +60,7 @@ function AiChatBox({ token, onResult }: AiChatBoxProps) {
         setMessage('');
         setLoading(true);
         setErrorMessage('');
+        focusInput();
 
         try {
             const response = await fetch(`${apiBaseUrl}/api/ai/chat`, {
@@ -81,6 +94,7 @@ function AiChatBox({ token, onResult }: AiChatBoxProps) {
             setErrorMessage(text);
         } finally {
             setLoading(false);
+            focusInput();
         }
     };
 
@@ -94,7 +108,10 @@ function AiChatBox({ token, onResult }: AiChatBoxProps) {
     ) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
-            await sendMessage();
+
+            if (!loading) {
+                await sendMessage();
+            }
         }
     };
 
@@ -169,12 +186,13 @@ function AiChatBox({ token, onResult }: AiChatBoxProps) {
                     <form onSubmit={handleSubmit}>
                         <div className="d-flex gap-2 align-items-end">
                             <textarea
+                                ref={inputRef}
                                 className="form-control rounded-4"
                                 rows={2}
                                 value={message}
                                 onChange={(event) => setMessage(event.target.value)}
                                 onKeyDown={handleKeyDown}
-                                disabled={loading}
+                                placeholder="Describe your lost item..."
                                 style={{ resize: 'none' }}
                             />
 
