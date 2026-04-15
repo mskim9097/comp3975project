@@ -102,7 +102,7 @@ function ItemsListPage() {
 
     const filteredItems = useMemo(() => {
         return items
-            .filter((item) => item.status === 'active')
+            .filter((item) => item.status === 'Active')
             .filter((item) => {
                 const matchesCategory =
                     selectedCategory === 'All' || item.category === selectedCategory;
@@ -132,7 +132,7 @@ function ItemsListPage() {
                 item.id === itemId
                     ? {
                         ...item,
-                        status: 'claim_pending',
+                        status: 'Claim Pending',
                         owner_id: ownerId,
                     }
                     : item
