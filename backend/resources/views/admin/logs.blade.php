@@ -33,14 +33,14 @@
                     <!-- Buttons -->
                     <button
                         type="submit"
-                        class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
                     >
                         Filter
                     </button>
 
                     <a
                         href="{{ route('admin.logs') }}"
-                        class="bg-gray-300 px-4 py-2 rounded-lg text-sm"
+                        class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg text-sm"
                     >
                         Reset
                     </a>

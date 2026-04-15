@@ -11,41 +11,50 @@
                 
                 <h1 class="text-2xl font-bold mb-6 text-gray-800">All Items</h1>
 
-                <form method="GET" action="{{ route('admin.items.index') }}" class="mb-6 bg-gray-50 p-4 rounded-md border flex items-end space-x-4">
-                
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Category</label>
-                    <select name="category" class="block w-full border-gray-300 rounded-md shadow-sm text-sm py-2 px-3">
-                        <option value="">All Categories</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category }}" {{ $selectedCategory == $category ? 'selected' : '' }}>
-                                {{ $category }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                <form method="GET" action="{{ route('admin.items.index') }}" class="mb-6 flex gap-3 flex-wrap items-center">
 
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Location</label>
-                    <select name="location" class="block w-full border-gray-300 rounded-md shadow-sm text-sm py-2 px-3">
-                        <option value="">All Locations</option>
-                        @foreach($locations as $location)
-                            <option value="{{ $location }}" {{ $selectedLocation == $location ? 'selected' : '' }}>
-                                {{ $location }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                    <div>
+                        <label class="sr-only" for="student_id">Search by Student ID</label>
+                        <input
+                            type="text"
+                            id="student_id"
+                            name="student_id"
+                            value="{{ $selectedStudentId }}"
+                            placeholder="Search by Student ID"
+                            class="border rounded-lg px-3 py-2 text-sm"
+                        >
+                    </div>
 
-                <div class="flex space-x-2">
-                    <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded text-sm transition h-[38px]">
+                    <div>
+                        <label class="sr-only" for="status">Filter by Status</label>
+                        <select
+                            id="status"
+                            name="status"
+                            class="border rounded-lg px-3 py-2 text-sm"
+                        >
+                            <option value="">All Statuses</option>
+                            @foreach($statuses as $status)
+                                <option value="{{ $status }}" {{ $selectedStatus == $status ? 'selected' : '' }}>
+                                    {{ ucfirst($status) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+                    >
                         Filter
                     </button>
-                    <a href="{{ route('admin.items.index') }}" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold py-2 px-4 rounded text-sm transition h-[38px] flex items-center">
+
+                    <a
+                        href="{{ route('admin.items.index') }}"
+                        class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg text-sm"
+                    >
                         Reset
                     </a>
-                </div>
-            </form>
+                </form>
                 
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white border border-gray-200">
