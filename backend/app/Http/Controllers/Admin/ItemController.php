@@ -11,27 +11,31 @@ class ItemController extends Controller
 {
     public function index(Request $request) 
     {
-        $query = Item::query();
+        $query = Item::query()->with('owner');
 
-        if ($request->filled('category')) {
-            $query->where('category', $request->input('category'));
+        if ($request->filled('student_id')) {
+            $query->where(function($q) use ($request) {
+                $q->whereHas('finder', function($subQ) use ($request) {
+                    $subQ->where('student_id', 'like', '%' . $request->input('student_id') . '%');
+                })->orWhereHas('owner', function($subQ) use ($request) {
+                    $subQ->where('student_id', 'like', '%' . $request->input('student_id') . '%');
+                });
+            });
         }
 
-        if ($request->filled('location')) {
-            $query->where('location', $request->input('location'));
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
         }
 
         $items = $query->latest()->get(); 
 
-        $categories = Item::select('category')->whereNotNull('category')->distinct()->pluck('category');
-        $locations = Item::select('location')->whereNotNull('location')->distinct()->pluck('location');
+        $statuses = ['pending', 'active', 'claim pending', 'returned'];
         
         return view('admin.items', [
             'items' => $items,
-            'categories' => $categories,
-            'locations' => $locations,
-            'selectedCategory' => $request->input('category'),
-            'selectedLocation' => $request->input('location'),
+            'statuses' => $statuses,
+            'selectedStudentId' => $request->input('student_id'),
+            'selectedStatus' => $request->input('status'),
         ]);
     }
 
