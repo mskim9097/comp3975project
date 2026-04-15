@@ -108,27 +108,7 @@ function ItemsListPage() {
             });
     }, [items, selectedCategory, selectedLocation, selectedTime]);
 
-    const handleOpenModal = (item: ItemLike) => {
-        setSelectedItem(item);
-    };
 
-    const handleCloseModal = () => {
-        setSelectedItem(null);
-    };
-
-    const handleClaimSuccess = (itemId: number, ownerId: number) => {
-        setItems((prevItems) =>
-            prevItems.map((item) =>
-                item.id === itemId
-                    ? {
-                        ...item,
-                        status: 'Claim Pending',
-                        owner_id: ownerId,
-                    }
-                    : item
-            )
-        );
-    };
 
     return (
         <>
