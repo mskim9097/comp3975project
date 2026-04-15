@@ -72,10 +72,6 @@ class ItemController extends Controller
             'found_at' => 'nullable|date',
         ]);
 
-        /*
-        * Prevent duplicate or invalid claim requests.
-        * A claim is only allowed when the item is currently active.
-        */
         $isClaimRequest =
             $validated['status'] === 'Claim Pending' &&
             !empty($validated['owner_id']);
@@ -94,9 +90,24 @@ class ItemController extends Controller
             }
         }
 
+        $wasReturnedBefore = $item->status === 'returned';
+
         $item->update($validated);
 
-        return response()->json($item);
+        if (
+            !$wasReturnedBefore &&
+            $item->status === 'returned' &&
+            $item->owner_id !== null
+        ) {
+            ReturnLog::create([
+                'item_id' => $item->id,
+                'finder_id' => $item->finder_id,
+                'owner_id' => $item->owner_id,
+                'returned_at' => now(),
+            ]);
+        }
+
+        return response()->json($item->load(['finder', 'owner']));
     }
 
     public function claim(Request $request, string $id)
