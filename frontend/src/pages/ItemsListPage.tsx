@@ -92,7 +92,7 @@ function ItemsListPage() {
 
     const filteredItems = useMemo(() => {
         return items
-            .filter((item) => item.status === 'active')
+            .filter((item) => item.status === 'Active')
             .filter((item) => {
                 const matchesCategory =
                     selectedCategory === 'All' || item.category === selectedCategory;
@@ -107,6 +107,28 @@ function ItemsListPage() {
                 return matchesCategory && matchesLocation && matchesTime;
             });
     }, [items, selectedCategory, selectedLocation, selectedTime]);
+
+    const handleOpenModal = (item: ItemLike) => {
+        setSelectedItem(item);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedItem(null);
+    };
+
+    const handleClaimSuccess = (itemId: number, ownerId: number) => {
+        setItems((prevItems) =>
+            prevItems.map((item) =>
+                item.id === itemId
+                    ? {
+                        ...item,
+                        status: 'Claim Pending',
+                        owner_id: ownerId,
+                    }
+                    : item
+            )
+        );
+    };
 
     return (
         <>
