@@ -22,6 +22,10 @@ class Item extends Model
         'found_at',
     ];
 
+    protected $casts = [
+        'found_at' => 'datetime',
+    ];
+
     public function setStatusAttribute($value)
     {
         $this->attributes['status'] = is_string($value) ? strtolower($value) : $value;

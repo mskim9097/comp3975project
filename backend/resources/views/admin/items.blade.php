@@ -96,6 +96,8 @@
                                         <p><strong>Brand:</strong> {{ $item->brand ?? 'N/A' }}</p>
                                         <p><strong>Finder ID:</strong> {{ $item->finder?->student_id ?? 'N/A' }}</p>
                                         <p><strong>Owner ID:</strong> {{ $item->owner?->student_id ?? 'N/A' }}</p>
+                                        <p><strong>Found At:</strong> {{ $item->found_at ? $item->found_at->format('Y-m-d H:i') : 'N/A' }}</p>
+                                        <p><strong>Description:</strong> {{ $item->description ?? 'N/A' }}</p>
                                         <p><strong>Current Status:</strong> <span class="font-bold text-blue-600">{{ ucfirst($item->status) }}</span></p>
                                     </div>
 
