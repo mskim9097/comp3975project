@@ -16,6 +16,8 @@ class Item extends Model
         'color',
         'brand',
         'location',
+        'image_url',
+        'image_public_id',
         'finder_id',
         'owner_id',
         'status',
