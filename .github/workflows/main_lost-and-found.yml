@@ -34,7 +34,17 @@ jobs:
           cd backend
           composer validate --no-check-publish
           composer install --prefer-dist --no-progress
+          
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
+      - name: Build frontend assets (Laravel Vite)
+        run: |
+          cd backend
+          npm install
+          npm run build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
