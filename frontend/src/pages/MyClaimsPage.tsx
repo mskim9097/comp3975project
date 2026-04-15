@@ -22,7 +22,7 @@ type Item = {
     location: string;
     finder_id: number | null;
     owner_id: number | null;
-    status: 'Pending' | 'Active' | 'Claim Pending' | 'Returned';
+    status: 'pending' | 'active' | 'claim pending' | 'returned';
     found_at: string | null;
 };
 
@@ -146,7 +146,7 @@ function MyClaimsPage() {
 
         return items.filter(
             (item) =>
-                item.status === 'Claim Pending' &&
+                item.status === 'claim pending' &&
                 item.owner_id === currentUser.id
         );
     }, [items, currentUser]);
@@ -186,7 +186,7 @@ function MyClaimsPage() {
                     location: selectedItem.location,
                     finder_id: selectedItem.finder_id,
                     owner_id: null,
-                    status: 'Active',
+                    status: 'active',
                     found_at: selectedItem.found_at,
                 }),
             });
@@ -205,7 +205,7 @@ function MyClaimsPage() {
                     item.id === selectedItem.id
                         ? {
                             ...item,
-                            status: 'Active',
+                            status: 'active',
                             owner_id: null,
                         }
                         : item

@@ -1,4 +1,4 @@
-export type ItemStatus = 'Pending' | 'Active' | 'Claim Pending' | 'Returned';
+export type ItemStatus = 'pending' | 'active' | 'claim pending' | 'returned';
 
 export type ItemLike = {
     id: number;

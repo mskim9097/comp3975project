@@ -92,7 +92,7 @@ function ItemsListPage() {
 
     const filteredItems = useMemo(() => {
         return items
-            .filter((item) => item.status === 'Active')
+            .filter((item) => item.status === 'active')
             .filter((item) => {
                 const matchesCategory =
                     selectedCategory === 'All' || item.category === selectedCategory;
