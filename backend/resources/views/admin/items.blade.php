@@ -64,8 +64,8 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="py-3 px-4 border-b text-sm text-gray-800">{{ $item->category }}</td>
                                 <td class="py-3 px-4 border-b text-sm text-gray-600">{{ $item->location }}</td>
-                                <td class="py-3 px-4 border-b text-sm text-gray-600">{{ $item->finder_id ?? 'N/A' }}</td>
-                                <td class="py-3 px-4 border-b text-sm text-gray-600">{{ $item->owner_id ?? 'N/A' }}</td>
+                                <td class="py-3 px-4 border-b text-sm text-gray-600">{{ $item->finder?->student_id ?? 'N/A' }}</td>
+                                <td class="py-3 px-4 border-b text-sm text-gray-600">{{ $item->owner?->student_id ?? 'N/A' }}</td>
                                 <td class="py-3 px-4 border-b text-sm font-bold">
                                     {{ ucfirst($item->status) }} </td>
                                 <td class="py-3 px-4 border-b text-sm text-center">
@@ -85,8 +85,8 @@
                                         <p><strong>Location:</strong> {{ $item->location }}</p>
                                         <p><strong>Color:</strong> {{ $item->color ?? 'N/A' }}</p>
                                         <p><strong>Brand:</strong> {{ $item->brand ?? 'N/A' }}</p>
-                                        <p><strong>Finder ID:</strong> {{ $item->finder_id ?? 'N/A' }}</p>
-                                        <p><strong>Owner ID:</strong> {{ $item->owner_id ?? 'N/A' }}</p>
+                                        <p><strong>Finder ID:</strong> {{ $item->finder?->student_id ?? 'N/A' }}</p>
+                                        <p><strong>Owner ID:</strong> {{ $item->owner?->student_id ?? 'N/A' }}</p>
                                         <p><strong>Current Status:</strong> <span class="font-bold text-blue-600">{{ ucfirst($item->status) }}</span></p>
                                     </div>
 
