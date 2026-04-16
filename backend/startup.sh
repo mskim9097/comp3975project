@@ -23,31 +23,27 @@ chown -R www-data:www-data /home/site/wwwroot/bootstrap/cache
 # Update PHP configuration files directly to ensure upload limits are applied
 echo "=== Updating PHP Configuration ==="
 
-# Update main php.ini
-if [ -f "/etc/php/8.5/fpm/php.ini" ]; then
-    echo "Updating /etc/php/8.5/fpm/php.ini"
-    sed -i 's/^upload_max_filesize\s*=.*/upload_max_filesize = 15M/' /etc/php/8.5/fpm/php.ini
-    sed -i 's/^post_max_size\s*=.*/post_max_size = 16M/' /etc/php/8.5/fpm/php.ini
-    sed -i 's/^memory_limit\s*=.*/memory_limit = 256M/' /etc/php/8.5/fpm/php.ini
-    grep -E "upload_max_filesize|post_max_size|memory_limit" /etc/php/8.5/fpm/php.ini
+# Find all php.ini files and update them
+echo "Searching for php.ini files..."
+for php_ini in $(find /etc -name "php.ini" 2>/dev/null); do
+    echo "Found and updating: $php_ini"
+    sed -i 's/^upload_max_filesize\s*=.*/upload_max_filesize = 15M/' "$php_ini"
+    sed -i 's/^post_max_size\s*=.*/post_max_size = 16M/' "$php_ini"
+    sed -i 's/^memory_limit\s*=.*/memory_limit = 256M/' "$php_ini"
+    echo "✓ Updated upload_max_filesize and post_max_size in $php_ini"
+done
+
+# Also try to find and update via php -i
+php_config_file=$(php -i | grep "Loaded Configuration File" | cut -d' ' -f4)
+if [ -n "$php_config_file" ] && [ -f "$php_config_file" ]; then
+    echo "Found active php.ini: $php_config_file"
+    sed -i 's/^upload_max_filesize\s*=.*/upload_max_filesize = 15M/' "$php_config_file"
+    sed -i 's/^post_max_size\s*=.*/post_max_size = 16M/' "$php_config_file"
+    sed -i 's/^memory_limit\s*=.*/memory_limit = 256M/' "$php_config_file"
+    echo "✓ Updated $php_config_file"
 fi
 
-# Update PHP-FPM pool configuration
-if [ -f "/etc/php/8.5/fpm/pool.d/www.conf" ]; then
-    echo "Updating /etc/php/8.5/fpm/pool.d/www.conf"
-    sed -i 's/^;*\s*php_admin_value\[upload_max_filesize\].*/php_admin_value[upload_max_filesize] = 15M/' /etc/php/8.5/fpm/pool.d/www.conf
-    sed -i 's/^;*\s*php_admin_value\[post_max_size\].*/php_admin_value[post_max_size] = 16M/' /etc/php/8.5/fpm/pool.d/www.conf
-    if ! grep -q "php_admin_value\[upload_max_filesize\]" /etc/php/8.5/fpm/pool.d/www.conf; then
-        echo "php_admin_value[upload_max_filesize] = 15M" >> /etc/php/8.5/fpm/pool.d/www.conf
-        echo "php_admin_value[post_max_size] = 16M" >> /etc/php/8.5/fpm/pool.d/www.conf
-    fi
-    echo "Updated PHP-FPM pool configuration"
-fi
-
-# Restart PHP-FPM to apply changes
-echo "Restarting PHP-FPM..."
-service php8.5-fpm restart || service php-fpm restart || true
-sleep 2
+echo "=== PHP Configuration Complete ==="
 
 echo "=== PHP Configuration Updated ==="
 
