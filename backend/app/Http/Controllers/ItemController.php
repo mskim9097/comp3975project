@@ -27,7 +27,7 @@ class ItemController extends Controller
             'location' => 'required|string|max:255',
             'finder_id' => 'required|exists:users,id',
             'found_at' => 'nullable|date',
-            'image' => 'nullable|max:10240',
+            'image' => 'nullable|image|max:12288',
         ]);
 
         \Log::error('Validation passed, uploading image', ['has_image' => $request->hasFile('image')]);
@@ -88,7 +88,7 @@ class ItemController extends Controller
             'owner_id' => 'nullable|exists:users,id',
             'status' => 'required|in:pending,active,claim pending,returned',
             'found_at' => 'nullable|date',
-            'image' => 'nullable|max:10240',
+            'image' => 'nullable|image|max:12288',
         ]);
 
         $isClaimRequest =
