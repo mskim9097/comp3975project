@@ -20,6 +20,13 @@ chmod -R 775 /home/site/wwwroot/bootstrap/cache
 chown -R www-data:www-data /home/site/wwwroot/storage
 chown -R www-data:www-data /home/site/wwwroot/bootstrap/cache
 
+# Verify Cloudinary credentials are loaded
+echo "=== Cloudinary Configuration Check ==="
+echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-NOT SET}"
+echo "CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-NOT SET}"
+echo "CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-NOT SET}"
+echo "====================================="
+
 # Laravel setup
 php /home/site/wwwroot/artisan migrate --force
 php /home/site/wwwroot/artisan db:seed --force
