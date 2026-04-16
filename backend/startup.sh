@@ -23,38 +23,51 @@ chown -R www-data:www-data /home/site/wwwroot/bootstrap/cache
 # Update PHP configuration files directly to ensure upload limits are applied
 echo "=== Updating PHP Configuration ==="
 
-# Create php.ini directly in /home/site/wwwroot if it doesn't exist
-PHP_INI="/home/site/wwwroot/php.ini"
-if [ ! -f "$PHP_INI" ]; then
-    echo "Creating custom php.ini at $PHP_INI"
+# The actual php.ini file that Azure uses
+PHP_INI="/usr/local/etc/php/conf.d/php.ini"
+
+echo "Updating: $PHP_INI"
+
+# Update the actual php.ini being used
+if [ -f "$PHP_INI" ]; then
+    sed -i.bak \
+        -e 's/^upload_max_filesize.*/upload_max_filesize = 15M/' \
+        -e 's/^post_max_size.*/post_max_size = 16M/' \
+        -e 's/^memory_limit.*/memory_limit = 256M/' \
+        "$PHP_INI"
+    echo "✓ Updated $PHP_INI"
+    echo "Current settings:"
+    grep -E "upload_max_filesize|post_max_size|memory_limit" "$PHP_INI" | head -3
+else
+    echo "Warning: $PHP_INI not found, will create it"
+    mkdir -p "$(dirname $PHP_INI)" 2>/dev/null || true
     cat > "$PHP_INI" << 'EOF'
+[PHP]
 upload_max_filesize = 15M
 post_max_size = 16M
 memory_limit = 256M
+max_execution_time = 300
+max_input_time = 300
 EOF
-    echo "✓ Created custom php.ini"
+    echo "✓ Created $PHP_INI"
 fi
 
-# Find and update all existing php.ini files
-echo "Searching for existing php.ini files..."
-for php_ini in $(find /etc -name "php.ini" 2>/dev/null); do
-    echo "Found and updating: $php_ini"
-    sed -i 's/^upload_max_filesize\s*=.*/upload_max_filesize = 15M/' "$php_ini" 2>/dev/null || true
-    sed -i 's/^post_max_size\s*=.*/post_max_size = 16M/' "$php_ini" 2>/dev/null || true
-    sed -i 's/^memory_limit\s*=.*/memory_limit = 256M/' "$php_ini" 2>/dev/null || true
-done
-
-# Try to find active php.ini and update
-php_active=$(php -r 'echo php_ini_loaded_file();' 2>/dev/null)
-if [ -n "$php_active" ] && [ -f "$php_active" ]; then
-    echo "Found active php.ini: $php_active"
-    sed -i 's/^upload_max_filesize\s*=.*/upload_max_filesize = 15M/' "$php_active"
-    sed -i 's/^post_max_size\s*=.*/post_max_size = 16M/' "$php_active"
-    sed -i 's/^memory_limit\s*=.*/memory_limit = 256M/' "$php_active"
-    echo "✓ Updated $php_active"
+# Also update main php.ini if it exists in /usr/local/etc/php/
+if [ -f "/usr/local/etc/php/php.ini" ]; then
+    echo "Also updating: /usr/local/etc/php/php.ini"
+    sed -i.bak \
+        -e 's/^upload_max_filesize.*/upload_max_filesize = 15M/' \
+        -e 's/^post_max_size.*/post_max_size = 16M/' \
+        -e 's/^memory_limit.*/memory_limit = 256M/' \
+        "/usr/local/etc/php/php.ini"
+    echo "✓ Updated /usr/local/etc/php/php.ini"
 fi
 
 echo "=== PHP Configuration Complete ==="
+
+# Verify current settings after update
+echo "Verifying PHP settings:"
+php -r 'echo "upload_max_filesize: " . ini_get("upload_max_filesize") . "\n"; echo "post_max_size: " . ini_get("post_max_size") . "\n"; echo "memory_limit: " . ini_get("memory_limit") . "\n";' 2>/dev/null || echo "Unable to verify"
 
 echo "=== PHP Configuration Updated ==="
 
