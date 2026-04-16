@@ -23,18 +23,33 @@ chown -R www-data:www-data /home/site/wwwroot/bootstrap/cache
 # Update PHP configuration files directly to ensure upload limits are applied
 echo "=== Updating PHP Configuration ==="
 
-# Find and update php.ini files
-PHP_INI_PATHS="/etc/php/*/fpm/php.ini /etc/php/*/apache2/php.ini /etc/php.ini /usr/local/etc/php/php.ini"
-for php_ini in $PHP_INI_PATHS; do
-    if [ -f "$php_ini" ]; then
-        echo "Found PHP ini: $php_ini"
-        # Update upload_max_filesize
-        sed -i 's/^upload_max_filesize\s*=.*/upload_max_filesize = 15M/' "$php_ini"
-        sed -i 's/^post_max_size\s*=.*/post_max_size = 16M/' "$php_ini"
-        sed -i 's/^memory_limit\s*=.*/memory_limit = 256M/' "$php_ini"
-        echo "Updated: $php_ini"
+# Update main php.ini
+if [ -f "/etc/php/8.5/fpm/php.ini" ]; then
+    echo "Updating /etc/php/8.5/fpm/php.ini"
+    sed -i 's/^upload_max_filesize\s*=.*/upload_max_filesize = 15M/' /etc/php/8.5/fpm/php.ini
+    sed -i 's/^post_max_size\s*=.*/post_max_size = 16M/' /etc/php/8.5/fpm/php.ini
+    sed -i 's/^memory_limit\s*=.*/memory_limit = 256M/' /etc/php/8.5/fpm/php.ini
+    grep -E "upload_max_filesize|post_max_size|memory_limit" /etc/php/8.5/fpm/php.ini
+fi
+
+# Update PHP-FPM pool configuration
+if [ -f "/etc/php/8.5/fpm/pool.d/www.conf" ]; then
+    echo "Updating /etc/php/8.5/fpm/pool.d/www.conf"
+    sed -i 's/^;*\s*php_admin_value\[upload_max_filesize\].*/php_admin_value[upload_max_filesize] = 15M/' /etc/php/8.5/fpm/pool.d/www.conf
+    sed -i 's/^;*\s*php_admin_value\[post_max_size\].*/php_admin_value[post_max_size] = 16M/' /etc/php/8.5/fpm/pool.d/www.conf
+    if ! grep -q "php_admin_value\[upload_max_filesize\]" /etc/php/8.5/fpm/pool.d/www.conf; then
+        echo "php_admin_value[upload_max_filesize] = 15M" >> /etc/php/8.5/fpm/pool.d/www.conf
+        echo "php_admin_value[post_max_size] = 16M" >> /etc/php/8.5/fpm/pool.d/www.conf
     fi
-done
+    echo "Updated PHP-FPM pool configuration"
+fi
+
+# Restart PHP-FPM to apply changes
+echo "Restarting PHP-FPM..."
+service php8.5-fpm restart || service php-fpm restart || true
+sleep 2
+
+echo "=== PHP Configuration Updated ==="
 
 # Verify Cloudinary credentials are loaded
 echo "=== Cloudinary Configuration Check ==="
