@@ -20,6 +20,22 @@ chmod -R 775 /home/site/wwwroot/bootstrap/cache
 chown -R www-data:www-data /home/site/wwwroot/storage
 chown -R www-data:www-data /home/site/wwwroot/bootstrap/cache
 
+# Update PHP configuration files directly to ensure upload limits are applied
+echo "=== Updating PHP Configuration ==="
+
+# Find and update php.ini files
+PHP_INI_PATHS="/etc/php/*/fpm/php.ini /etc/php/*/apache2/php.ini /etc/php.ini /usr/local/etc/php/php.ini"
+for php_ini in $PHP_INI_PATHS; do
+    if [ -f "$php_ini" ]; then
+        echo "Found PHP ini: $php_ini"
+        # Update upload_max_filesize
+        sed -i 's/^upload_max_filesize\s*=.*/upload_max_filesize = 15M/' "$php_ini"
+        sed -i 's/^post_max_size\s*=.*/post_max_size = 16M/' "$php_ini"
+        sed -i 's/^memory_limit\s*=.*/memory_limit = 256M/' "$php_ini"
+        echo "Updated: $php_ini"
+    fi
+done
+
 # Verify Cloudinary credentials are loaded
 echo "=== Cloudinary Configuration Check ==="
 echo "CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME:-NOT SET}"
